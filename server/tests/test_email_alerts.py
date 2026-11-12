@@ -73,7 +73,7 @@ class FakeMailbox:
 
 
 def test_alert_source():
-    assert alert_source("jobalerts-noreply@linkedin.com".split("@")[1]) == "linkedin"
+    assert alert_source("linkedin.com") == "linkedin"
     assert alert_source("e.linkedin.com") == "linkedin"
     assert alert_source("gmail.com") is None
 
