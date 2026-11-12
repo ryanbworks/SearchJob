@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Currículo para a vaga</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%232a78d6'/%3E%3Ccircle cx='44' cy='44' r='20' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M58 58l18 18' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/pages.css">
+  <link rel="stylesheet" href="/static/curriculo.css">
+</head>
+<body>
+  <header class="topbar no-print">
+    <div class="brand">
+      <h1>Currículo para a vaga</h1>
+      <span id="job-meta" class="muted small"></span>
+    </div>
+    <div class="controls">
+      <a class="button" href="/painel">← Painel</a>
+      <a class="button hidden" id="interview-link" href="/entrevista">Preparar entrevista</a>
+      <button type="button" id="regen-btn" class="hidden">Gerar de novo</button>
+      <button type="button" id="print-btn" class="primary hidden">Salvar PDF</button>
+    </div>
+  </header>
+
+  <main class="narrow">
+    <section id="notice" class="card notice hidden no-print" role="alert"></section>
+
+    <section id="picker" class="card hidden no-print">
+      <h2>Para qual vaga é o currículo?</h2>
+      <div class="row wrap">
+        <select id="job-picker" aria-label="Vaga"></select>
+        <button type="button" class="primary" id="pick-btn">Gerar currículo</button>
+      </div>
+    </section>
+
+    <section id="loading" class="card loading hidden no-print" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <div>
+        <strong>A IA local está adaptando seu currículo…</strong>
+        <p class="muted small">Ela só reorganiza o que está no seu perfil. Pode levar 1 a 2 minutos.</p>
+      </div>
+    </section>
+
+    <div id="resume" class="resume-layout hidden">
+      <article class="sheet" id="sheet" aria-label="Currículo">
+        <header class="sheet-head">
+          <h1 id="r-name" contenteditable="true"></h1>
+          <p id="r-headline" class="headline" contenteditable="true"></p>
+          <p id="r-contact" class="contact" contenteditable="true"></p>
+        </header>
+        <section>
+          <h2>Resumo profissional</h2>
+          <p id="r-summary" contenteditable="true"></p>
+        </section>
+        <section>
+          <h2>Conhecimentos</h2>
+          <p id="r-skills" contenteditable="true"></p>
+        </section>
+        <section id="r-highlights-section">
+          <h2>Projetos e experiências</h2>
+          <div id="r-highlights"></div>
+        </section>
+        <section id="r-education-section">
+          <h2>Formação</h2>
+          <ul id="r-education" contenteditable="true"></ul>
+        </section>
+        <section id="r-languages-section">
+          <h2>Idiomas</h2>
+          <ul id="r-languages" contenteditable="true"></ul>
+        </section>
+      </article>
+
+      <aside class="side no-print">
+        <section class="card">
+          <h2>Como usar</h2>
+          <ol class="plain-list small">
+            <li>Clique em qualquer texto da folha para corrigir ou completar.</li>
+            <li>Confira se tudo é verdade: na entrevista vão perguntar.</li>
+            <li>Clique em <strong>Salvar PDF</strong> e escolha "Salvar como PDF".</li>
+          </ol>
+        </section>
+        <section class="card">
+          <h2>Palavras-chave da vaga</h2>
+          <h3 class="mt-s"><span class="badge good">✓ No currículo</span></h3>
+          <div id="kw-used" class="chips"></div>
+          <h3 class="mt-s"><span class="badge bad">✗ Faltando</span></h3>
+          <p class="muted small">Só inclua se for verdade. Senão, é algo para estudar.</p>
+          <div id="kw-missing" class="chips"></div>
+        </section>
+        <section class="card hidden" id="removed-card">
+          <h2>Removido por segurança</h2>
+          <p class="muted small">A IA sugeriu, mas não está no seu perfil. Se você domina, acrescente
+            no <code>data/profile.md</code>.</p>
+          <div id="removed" class="chips"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="toast" class="toast no-print" hidden></div>
+  <script src="/static/common.js"></script>
+  <script src="/static/curriculo.js"></script>
+</body>
+</html>

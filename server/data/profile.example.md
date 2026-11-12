@@ -1,7 +1,16 @@
+---
+nome: Seu Nome Completo
+email: seu.email@exemplo.com
+telefone: (00) 00000-0000
+cidade: Sua Cidade/UF
+linkedin: linkedin.com/in/seu-perfil
+github: github.com/seu-usuario
+---
 # Perfil do candidato (exemplo)
 
 Copie este arquivo para `data/profile.md` e escreva com as suas informações.
 A IA usa este texto para dar nota às vagas e redigir respostas. Ele fica só no seu servidor.
+O bloco entre `---` no topo é usado apenas no cabeçalho do currículo (não vai para a IA).
 
 ## Objetivo
 Primeira oportunidade em Suporte Técnico / Help Desk (N1), presencial, híbrido ou remoto.

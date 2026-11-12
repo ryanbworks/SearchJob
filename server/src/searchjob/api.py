@@ -25,6 +25,7 @@ from .llm import LLMClient, LLMError, LLMUnavailable
 from .models import JobStatus
 from .pipeline import build_llm, run_cycle
 from .report import build_context, render_report
+from .resume import generate_resume, profile_section
 
 log = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -129,6 +130,10 @@ def create_app(
     def entrevista() -> FileResponse:
         return FileResponse(STATIC_DIR / "entrevista.html")
 
+    @app.get("/curriculo", include_in_schema=False)
+    def curriculo() -> FileResponse:
+        return FileResponse(STATIC_DIR / "curriculo.html")
+
     @app.get("/health")
     def health() -> dict[str, Any]:
         return {"status": "ok", "version": __version__, "llm_model": settings.llm_model}
@@ -187,6 +192,24 @@ def create_app(
             return cached
         prep = call_llm(generate_prep, llm, settings.load_profile(), job)
         return db.save_document(job_id, "interview", prep)
+
+    @app.post("/api/jobs/{job_id}/resume", dependencies=auth)
+    def resume(job_id: int, regenerate: bool = False) -> dict[str, Any]:
+        """Currículo adaptado à vaga (cache por vaga) + contato e formação do perfil."""
+        job = job_or_404(job_id)
+        profile = settings.load_profile()
+        doc = None if regenerate else db.get_document(job_id, "resume")
+        if doc is None:
+            doc = db.save_document(
+                job_id, "resume", call_llm(generate_resume, llm, profile, job)
+            )
+        return {
+            **doc,
+            "contact": settings.load_profile_contact(),
+            "education": profile_section(profile, "forma"),
+            "languages": profile_section(profile, "idioma"),
+            "job": {"id": job["id"], "title": job["title"], "company": job.get("company")},
+        }
 
     @app.post("/api/interview/feedback", dependencies=auth)
     def interview_feedback(body: FeedbackRequest) -> dict[str, Any]:

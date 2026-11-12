@@ -81,14 +81,36 @@ class Settings(BaseSettings):
     def reports_dir(self) -> Path:
         return self.data_dir / "reports"
 
-    def load_profile(self) -> str:
-        """Lê o perfil/currículo em texto usado pela IA para avaliar as vagas."""
-        if self.profile_path.exists():
-            return self.profile_path.read_text(encoding="utf-8")
-        example = self.data_dir / "profile.example.md"
-        if example.exists():
-            return example.read_text(encoding="utf-8")
+    def _profile_raw(self) -> str:
+        for path in (self.profile_path, self.data_dir / "profile.example.md"):
+            if path.exists():
+                return path.read_text(encoding="utf-8")
         return ""
+
+    def load_profile(self) -> str:
+        """Perfil em texto usado pela IA (sem o bloco de contato)."""
+        return split_front_matter(self._profile_raw())[1]
+
+    def load_profile_contact(self) -> dict[str, str]:
+        """Dados de contato do bloco ``---`` no topo do perfil (usados só no currículo)."""
+        return split_front_matter(self._profile_raw())[0]
+
+
+def split_front_matter(text: str) -> tuple[dict[str, str], str]:
+    """Separa um bloco ``chave: valor`` entre linhas ``---`` no início do texto."""
+    lines = text.lstrip("﻿").splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, text
+    try:
+        end = next(i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---")
+    except StopIteration:
+        return {}, text
+    data: dict[str, str] = {}
+    for line in lines[1:end]:
+        key, sep, value = line.partition(":")
+        if sep and key.strip() and value.strip():
+            data[key.strip().lower()] = value.strip()
+    return data, "\n".join(lines[end + 1 :]).lstrip("\n")
 
 
 @lru_cache
