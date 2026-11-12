@@ -4,11 +4,35 @@ services:
     image: searchjob:latest
     container_name: searchjob
     restart: unless-stopped
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     ports:
-      - "8000:8000"
+      - "${SJ_PORT:-8000}:8000"
+    environment:
+      # Chave de API para autenticação (extensão e webhooks)
+      - SJ_API_KEY=${SJ_API_KEY:-troque-por-uma-chave-aleatoria}
+
+      # Termos de pesquisa e filtros
+      - SJ_SEARCH_TERMS=${SJ_SEARCH_TERMS:-["suporte tecnico", "help desk", "service desk", "analista de suporte", "tecnico de informatica"]}
+      - SJ_PREFERRED_STATES=${SJ_PREFERRED_STATES:-[]}
+      - SJ_BLOCKED_TERMS=${SJ_BLOCKED_TERMS:-["comissao", "vendas externas", "telemarketing ativo"]}
+      - SJ_MAX_EXPERIENCE_YEARS=${SJ_MAX_EXPERIENCE_YEARS:-2}
+
+      # IA local (Ollama local ou outro endpoint compatível com OpenAI)
+      - SJ_LLM_BASE_URL=${SJ_LLM_BASE_URL:-http://ollama:11434/v1}
+      - SJ_LLM_MODEL=${SJ_LLM_MODEL:-qwen2.5:7b-instruct}
+
+      # Agendamento e fuso horário
+      - SJ_COLLECT_EVERY_HOURS=${SJ_COLLECT_EVERY_HOURS:-3}
+      - SJ_REPORT_HOUR=${SJ_REPORT_HOUR:-18}
+      - SJ_TIMEZONE=${SJ_TIMEZONE:-America/Sao_Paulo}
     volumes:
-      - ./data:/app/data
+      - ${SJ_DATA_DIR:-./data}:/app/data
+    depends_on:
+      ollama:
+        condition: service_started
+        required: false
 
   # IA local na CPU do servidor (opcional). Ative com:
   #   docker compose --profile ollama up -d
