@@ -5,16 +5,19 @@ from __future__ import annotations
 import logging
 import secrets
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import __version__
 from .analyzer import answer_question
 from .config import Settings, get_settings
+from .dashboard import build_dashboard
 from .db import Database
 from .llm import LLMClient, LLMError, LLMUnavailable
 from .models import JobStatus
@@ -22,6 +25,8 @@ from .pipeline import build_llm, run_cycle
 from .report import build_context, render_report
 
 log = logging.getLogger(__name__)
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 class JobUpdate(BaseModel):
@@ -90,9 +95,16 @@ def create_app(
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Vaga não encontrada")
         return job
 
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
-        return RedirectResponse("/docs")
+        return RedirectResponse("/painel")
+
+    @app.get("/painel", include_in_schema=False)
+    def painel() -> FileResponse:
+        # A página não contém dados: ela busca /api/dashboard com a chave do usuário.
+        return FileResponse(STATIC_DIR / "painel.html")
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -151,6 +163,10 @@ def create_app(
     @app.get("/api/insights", dependencies=auth)
     def insights(days: Annotated[int, Query(ge=1, le=365)] = 30) -> dict[str, Any]:
         return db.insights(days=days)
+
+    @app.get("/api/dashboard", dependencies=auth)
+    def dashboard(days: Annotated[int, Query(ge=1, le=365)] = 30) -> dict[str, Any]:
+        return build_dashboard(db, settings.load_profile(), days=days)
 
     @app.post("/api/collect", dependencies=auth, status_code=status.HTTP_202_ACCEPTED)
     def trigger_collect(tasks: BackgroundTasks) -> dict[str, str]:

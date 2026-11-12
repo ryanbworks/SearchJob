@@ -63,6 +63,20 @@ def test_answer_returns_503_when_llm_offline(settings, db):
     assert resp.status_code == 503
 
 
+def test_painel_page_and_dashboard_api(client):
+    page = client.get("/painel")
+    assert page.status_code == 200
+    assert "Painel SearchJob" in page.text
+    assert client.get("/static/painel.js").status_code == 200
+
+    assert client.get("/api/dashboard").status_code == 401
+    data = client.get("/api/dashboard", params={"days": 7}, headers=KEY).json()
+    assert data["days"] == 7
+    assert data["kpis"]["total_jobs"] == 1
+    # O perfil do teste cita Windows; a vaga pede Windows e AD.
+    assert data["coverage"] == 50.0
+
+
 def test_report_and_insights(client):
     html = client.get("/report", params={"key": "segredo"})
     assert html.status_code == 200

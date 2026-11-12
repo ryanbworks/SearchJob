@@ -41,6 +41,45 @@ SKILL_PATTERNS: dict[str, list[str]] = {
     "CNH": [r"\bcnh\b", r"carteira de habilitacao"],
 }
 
+# Como aprender/demonstrar cada requisito (usado nas recomendações do painel).
+SKILL_TIPS: dict[str, str] = {
+    "Windows": "Pratique instalação, drivers, contas e restauração do sistema. "
+    "Escreva 'suporte a Windows 10/11' no currículo.",
+    "Linux": "Suba uma VM Debian/Ubuntu no Proxmox e pratique comandos, usuários e permissões.",
+    "macOS": "Noções básicas bastam: a documentação de suporte da Apple cobre o essencial.",
+    "Microsoft 365 / Office": "Trilha gratuita 'Microsoft 365 Fundamentals' (MS-900) no "
+    "Microsoft Learn.",
+    "Active Directory": "Monte um laboratório com Windows Server (avaliação gratuita) no Proxmox: "
+    "crie usuários, grupos e GPOs e resete senhas.",
+    "Azure / Entra ID / Intune": "Trilhas gratuitas AZ-900 e SC-900 no Microsoft Learn.",
+    "Redes (TCP/IP)": "Curso gratuito 'Networking Basics' da Cisco Networking Academy.",
+    "DNS / DHCP": "Configure DNS e DHCP no seu laboratório (Windows Server ou pfSense) e "
+    "documente o passo a passo no GitHub.",
+    "VPN / Firewall": "Instale pfSense/OPNsense numa VM, crie regras e uma VPN WireGuard.",
+    "Cabeamento estruturado": "Aprenda os padrões T568A/B e a crimpagem: é rápido e prático.",
+    "Hardware / manutenção": "Cite montagens e manutenções que você já fez. O curso Google IT "
+    "Support cobre bem o tema.",
+    "Impressoras": "Saiba instalar driver, compartilhar na rede e destravar filas de impressão.",
+    "Telefonia / VoIP": "Noções de PABX/VoIP: o FreePBX numa VM é um bom laboratório.",
+    "Android / iOS": "Pratique configurar e-mail corporativo, Wi-Fi e MDM básico em celulares.",
+    "Acesso remoto": "Use AnyDesk, TeamViewer e RDP e cite as ferramentas no currículo.",
+    "Ferramentas de chamados (ITSM)": "Suba o GLPI no Proxmox (Docker) e simule abrir, "
+    "priorizar e fechar chamados.",
+    "ITIL": "Estude o ITIL 4 Foundation (há resumos e simulados gratuitos). A certificação "
+    "é um diferencial forte.",
+    "Virtualização": "Seu homelab com Proxmox já conta: descreva-o no currículo.",
+    "Backup": "Agende backups no Proxmox e teste a restauração. Isso vira um bom exemplo "
+    "para entrevistas.",
+    "SQL / banco de dados": "SQLBolt e o curso de SQL da Fundação Bradesco são gratuitos.",
+    "Scripts (PowerShell / Python)": "Automatize uma tarefa real em PowerShell ou Python e "
+    "publique no GitHub.",
+    "Atendimento ao usuário": "Destaque experiências com público, mesmo fora de TI: "
+    "comunicação pesa muito em suporte.",
+    "Inglês": "Leia documentação técnica todos os dias e informe seu nível real.",
+    "Ensino superior": "Informe 'cursando' com a previsão de conclusão: muitas vagas aceitam.",
+    "CNH": "Exigida em field service. Sem CNH, priorize vagas internas ou remotas.",
+}
+
 _COMPILED = {
     name: [re.compile(p) for p in patterns] for name, patterns in SKILL_PATTERNS.items()
 }

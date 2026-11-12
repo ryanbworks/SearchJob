@@ -234,6 +234,24 @@ class Database:
             ).fetchall()
         return [_row_to_dict(r) for r in rows]
 
+    def jobs_since(self, days: int) -> list[dict[str, Any]]:
+        """Vagas coletadas nos últimos ``days`` dias (sem a descrição, para ser leve)."""
+        since = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
+        with self.conn() as c:
+            rows = c.execute(
+                """SELECT id, source, title, company, url, city, state, workplace_type,
+                          published_at, collected_at, skills, score, summary, requirements,
+                          missing, status, status_updated_at
+                   FROM jobs WHERE collected_at >= ? ORDER BY collected_at DESC""",
+                (since,),
+            ).fetchall()
+        return [_row_to_dict(r) for r in rows]
+
+    def status_counts(self) -> dict[str, int]:
+        with self.conn() as c:
+            rows = c.execute("SELECT status, COUNT(*) AS n FROM jobs GROUP BY status").fetchall()
+        return {r["status"]: r["n"] for r in rows}
+
     def insights(self, days: int = 30) -> dict[str, Any]:
         """Agrega o que o mercado está pedindo e o andamento das candidaturas."""
         since = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
