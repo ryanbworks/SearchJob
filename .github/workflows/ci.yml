@@ -46,9 +46,19 @@ jobs:
         run: npx --yes web-ext@8 lint --source-dir . --ignore-files tests package.json README.md
 
   docker:
-    name: Build da imagem
+    name: Build e scan da imagem
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: docker build
         run: docker build -t searchjob:ci server
+      - name: Escanear vulnerabilidades com Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: searchjob:ci
+          format: table
+          exit-code: 0
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
