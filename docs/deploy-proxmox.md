@@ -59,9 +59,24 @@ variante do modelo com contexto maior, sem mexer na configuração global do ser
 cat > Modelfile <<EOF
 FROM qwen3:4b-instruct
 PARAMETER num_ctx 6144
+PARAMETER num_thread 16
 EOF
 ollama create searchjob-qwen:4b -f Modelfile
 ```
+
+**Desempenho em CPU (medido num Xeon E5-2699 v3, qwen3:4b-instruct):**
+
+| Ajuste | Tempo por vaga |
+|---|---|
+| CT com 4 GB (modelo + contexto não cabem, entra em swap) | 1min40s a 3min |
+| CT com 6 GB | ~1min |
+| + `PARAMETER num_thread 16` (o padrão do Ollama usou 8) | ~45s |
+
+- Dê ao container do Ollama **pelo menos 2 GB a mais que o tamanho do modelo**. Se o
+  processo aparecer no estado `D` no `top` com pouca CPU, ele está esperando o swap.
+- Use em `num_thread` o número de **núcleos físicos** (não threads) que pode ceder.
+- Com ~45s por vaga, `SJ_ANALYZE_BATCH_SIZE=80` analisa um lote em ~1h, dentro do ciclo
+  de 3h.
 
 E aponte o SearchJob para ele: `SJ_LLM_BASE_URL=http://IP-DO-OLLAMA:11434/v1` e
 `SJ_LLM_MODEL=searchjob-qwen:4b`. Em CPU, use `SJ_LLM_TIMEOUT_SECONDS=600`: a preparação de
