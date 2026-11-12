@@ -18,6 +18,12 @@ services:
     container_name: searchjob-ollama
     restart: unless-stopped
     profiles: ["ollama"]
+    environment:
+      # Os prompts (perfil + vaga + resposta) passam de 4 mil tokens; com menos o Ollama
+      # corta o texto sem avisar.
+      OLLAMA_CONTEXT_LENGTH: "8192"
+      # Libera a RAM 5 minutos depois do último uso.
+      OLLAMA_KEEP_ALIVE: "5m"
     volumes:
       - ollama:/root/.ollama
     expose:

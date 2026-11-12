@@ -48,6 +48,21 @@ def test_analyze_pending_stops_when_llm_offline(db, make_job):
     assert len(db.pending_analysis(10)) == 1
 
 
+def test_qwen3_thinking_is_disabled():
+    from searchjob.llm import LLMClient, disable_thinking, uses_thinking
+
+    assert uses_thinking("qwen3:8b") and uses_thinking("Qwen3-8B-Instruct")
+    assert not uses_thinking("qwen2.5:3b-instruct")
+    msgs = disable_thinking([{"role": "system", "content": "Seja breve."}])
+    assert msgs[0]["content"] == "Seja breve. /no_think"
+    assert disable_thinking([{"role": "user", "content": "oi"}])[0]["content"] == "/no_think"
+
+    llm, sent = fake_llm('{"score": 5}')
+    llm = LLMClient("http://llm.test/v1", "qwen3:8b", client=llm.client)
+    analyze_job(llm, "perfil", {"title": "x"})
+    assert sent[0]["messages"][0]["content"].endswith("/no_think")
+
+
 def test_answer_question_respects_limit():
     llm, sent = fake_llm('"Tenho facilidade em explicar soluções técnicas de forma simples."')
     answer = answer_question(llm, "perfil", "Por que você?", max_chars=30)

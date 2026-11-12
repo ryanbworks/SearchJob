@@ -8,11 +8,18 @@ O SearchJob conversa com qualquer servidor compatível com a API da OpenAI
 | Modelo | Tamanho (Q4) | Onde roda bem | Observação |
 |---|---|---|---|
 | Qwen2.5 7B Instruct | ~4,7 GB | RX 6600 / CPU com 10 GB de RAM | melhor custo-benefício em português |
-| Qwen3 8B | ~5 GB | RX 6600 | o SearchJob remove o bloco `<think>` automaticamente |
+| Qwen3 8B | ~5 GB | RX 6600 | o SearchJob desliga o "pensamento" (`/no_think`) para ficar rápido |
 | Llama 3.1 8B Instruct | ~4,9 GB | RX 6600 | boa alternativa |
-| Qwen2.5 3B Instruct | ~2 GB | CPU modesta | mais rápido, um pouco menos preciso |
+| Qwen2.5 3B Instruct | ~2 GB | CPU modesta / pouca RAM | mais rápido, um pouco menos preciso; bom para dar notas em lote |
 
 Com 8 GB de VRAM, modelos de 7B–8B quantizados em **Q4_K_M** cabem inteiros na placa.
+
+> **Contexto mínimo: 8192 tokens.** Perfil + vaga + resposta passam de 4 mil tokens. No LM
+> Studio ajuste *Context Length*; no Ollama use `OLLAMA_CONTEXT_LENGTH=8192` (já vem no
+> `docker-compose.yml`). Com contexto menor o Ollama corta o texto sem avisar.
+
+**Divisão sugerida:** GPU do PC para o que é interativo (entrevista, currículo, respostas);
+CPU do servidor com um modelo pequeno para dar notas às vagas em segundo plano.
 
 ## Opção 1: RX 6600 no Windows com LM Studio (recomendado)
 

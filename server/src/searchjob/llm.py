@@ -47,6 +47,8 @@ class LLMClient:
         temperature: float = 0.2,
         max_tokens: int = 700,
     ) -> str:
+        if uses_thinking(self.model):
+            messages = disable_thinking(messages)
         payload = {
             "model": self.model,
             "messages": messages,
@@ -71,6 +73,26 @@ class LLMClient:
             return self.client.get(f"{self.base_url}/models", timeout=5).status_code < 500
         except httpx.HTTPError:
             return False
+
+
+def uses_thinking(model: str) -> bool:
+    """Modelos com modo de raciocínio ligado por padrão (ex.: Qwen3)."""
+    return "qwen3" in model.lower().replace("-", "").replace(".", "")
+
+
+def disable_thinking(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Desliga o raciocínio do Qwen3 com a instrução ``/no_think``.
+
+    Nessas tarefas (notas, textos curtos) o raciocínio só gasta tempo: os tokens são
+    gerados e depois descartados. Sem ele, as respostas saem várias vezes mais rápido.
+    """
+    result = [dict(m) for m in messages]
+    target = next((m for m in result if m.get("role") == "system"), None)
+    if target is None:
+        result.insert(0, {"role": "system", "content": "/no_think"})
+    elif "/no_think" not in target["content"]:
+        target["content"] = f"{target['content']} /no_think"
+    return result
 
 
 def strip_reasoning(text: str) -> str:
