@@ -91,6 +91,10 @@ def collect(
 
 def run_cycle(db: Database, settings: Settings, llm: LLMClient) -> dict[str, Any]:
     stats = collect(db, settings)
+    if settings.imap_enabled:
+        from .collectors.email_alerts import process_mailbox
+
+        stats["email"] = process_mailbox(db, settings, stats)
     stats["analyzed"] = analyze_pending(
         db, llm, settings.load_profile(), limit=settings.analyze_batch_size
     )

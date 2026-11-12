@@ -24,6 +24,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("collect", help="coleta vagas agora")
     sub.add_parser("analyze", help="analisa vagas pendentes com a IA")
     sub.add_parser("cycle", help="coleta e analisa")
+    sub.add_parser("email", help="lê alertas de vaga e respostas na caixa de e-mail")
     sub.add_parser("report", help="gera o relatório diário em HTML")
 
     args = parser.parse_args(argv)
@@ -48,6 +49,15 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == "analyze":
         result = {"analyzed": analyze_pending(db, build_llm(settings), settings.load_profile(),
                                               limit=settings.analyze_batch_size)}
+    elif args.command == "email":
+        from .collectors.email_alerts import process_mailbox
+        from .pipeline import new_stats
+
+        if not settings.imap_enabled:
+            parser.error("configure SJ_IMAP_HOST, SJ_IMAP_USER e SJ_IMAP_PASSWORD no .env")
+        stats = new_stats()
+        result = {"email": process_mailbox(db, settings, stats), **stats}
+        db.save_run(stats)
     elif args.command == "cycle":
         result = run_cycle(db, settings, build_llm(settings))
     else:

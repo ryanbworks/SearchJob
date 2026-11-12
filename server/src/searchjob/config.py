@@ -52,9 +52,22 @@ class Settings(BaseSettings):
     collect_every_hours: int = 3
     report_hour: int = 18
 
+    # Alertas de vaga por e-mail (LinkedIn, Indeed, InfoJobs, Catho…) e respostas das empresas.
+    # Use uma conta só para isso. No Gmail: verificação em 2 etapas + "senha de app".
+    imap_host: str = ""
+    imap_port: int = 993
+    imap_user: str = ""
+    imap_password: str = ""
+    imap_folder: str = "INBOX"
+    imap_days: int = 7
+
     # Notificação opcional
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+
+    @property
+    def imap_enabled(self) -> bool:
+        return bool(self.imap_host and self.imap_user and self.imap_password)
 
     @property
     def database_path(self) -> Path:
