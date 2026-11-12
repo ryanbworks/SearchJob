@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Configuração local e segredos
+.env
+*.env.local
+
+# Dados pessoais / gerados pelo servidor
+server/data/*
+!server/data/profile.example.md
+!server/data/.gitkeep
+
+# Extensão
+extension/web-ext-artifacts/
+node_modules/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
