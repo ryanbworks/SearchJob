@@ -7,7 +7,8 @@ from typing import Protocol
 
 from ..models import JobPosting
 
-USER_AGENT = "SearchJob/0.1 (+uso pessoal; coleta de baixa frequência)"
+# Cabeçalhos HTTP só aceitam ASCII: nada de acentos aqui.
+USER_AGENT = "SearchJob/0.1 (+uso pessoal; coleta de baixa frequencia)"
 
 _TAG_RE = re.compile(r"<[^>]+>")
 _SPACE_RE = re.compile(r"[ \t]+")

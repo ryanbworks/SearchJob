@@ -20,6 +20,12 @@ SAMPLE = {
 }
 
 
+def test_default_client_builds_with_ascii_headers():
+    # Regressão: um acento no User-Agent derrubava o coletor em produção.
+    collector = GupyCollector(delay_seconds=0)
+    assert collector.client.headers["User-Agent"].isascii()
+
+
 def test_clean_text_strips_html():
     assert clean_text("a<br>b <b>c</b>&amp;d") == "a\nb c&d"
 

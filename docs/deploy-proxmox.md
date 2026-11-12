@@ -45,6 +45,28 @@ Recursos sugeridos:
 > `nesting=1` é obrigatório para rodar Docker dentro de LXC. Recomendo reservar um IP fixo
 > para o container no seu roteador, porque a extensão usa esse endereço.
 
+> **Host com Tailscale?** O container herda o DNS do host (`100.100.100.100`, MagicDNS), que
+> não funciona dentro do LXC, e nenhum nome resolve (`apt update` e `git clone` falham).
+> Defina um DNS da rede local para o container:
+> `pct set 120 --nameserver "IP-DO-SEU-DNS 1.1.1.1" --searchdomain lan` e reinicie o container.
+
+### Reaproveitando um Ollama que já existe
+
+Se você já tem um container com Ollama, não precisa do perfil `ollama` do compose. Crie uma
+variante do modelo com contexto maior, sem mexer na configuração global do serviço:
+
+```bash
+cat > Modelfile <<EOF
+FROM qwen3:4b-instruct
+PARAMETER num_ctx 6144
+EOF
+ollama create searchjob-qwen:4b -f Modelfile
+```
+
+E aponte o SearchJob para ele: `SJ_LLM_BASE_URL=http://IP-DO-OLLAMA:11434/v1` e
+`SJ_LLM_MODEL=searchjob-qwen:4b`. Em CPU, use `SJ_LLM_TIMEOUT_SECONDS=600`: a preparação de
+entrevista gera textos longos.
+
 ## 2. Instalar o Docker
 
 Dentro do container:
