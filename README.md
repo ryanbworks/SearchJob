@@ -32,6 +32,7 @@ flowchart LR
         DB --> A[Analisador]
         A <--> DB
         API[API REST<br/>FastAPI] <--> DB
+        API --> P[Painel web<br/>/painel]
     end
     A <-->|API compatível OpenAI| LLM[IA local<br/>Ollama na CPU ou<br/>LM Studio na RX 6600]
     API <-->|answer| LLM
@@ -55,8 +56,12 @@ flowchart LR
   mesmo sem IA.
 - Análise com LLM local: nota de aderência, resumo, requisitos e o que falta no meu perfil.
   Se a IA estiver offline, a análise é adiada sem perder nada.
-- Relatório diário em HTML com ranking das vagas e o painel "o que o mercado está pedindo",
-  com aviso opcional pelo Telegram.
+- **Painel web** (`/painel`): quanto do que o mercado pede o meu perfil cobre, o que estudar
+  primeiro (com caminho prático), palavras-chave para o currículo, o que a IA apontou como
+  faltando, vagas republicadas, empresas e cargos que mais aparecem, vagas por dia,
+  distribuição das notas, funil de candidaturas e uma tabela de vagas com filtros e troca de
+  status.
+- Relatório diário em HTML com ranking das vagas e aviso opcional pelo Telegram.
 - API REST documentada (OpenAPI em `/docs`), protegida por chave.
 - Acompanhamento de status: nova → candidatado → entrevista → proposta / recusada.
 
@@ -91,6 +96,7 @@ docker exec -it searchjob-ollama ollama pull qwen2.5:7b-instruct
 docker compose exec searchjob searchjob cycle   # primeira coleta + análise
 ```
 
+- Painel: `http://localhost:8000/painel` (pede a chave na primeira vez)
 - Relatório: `http://localhost:8000/report?key=SUA_CHAVE`
 - API: `http://localhost:8000/docs`
 - Extensão: veja [`extension/README.md`](extension/README.md)
@@ -109,7 +115,6 @@ o build da imagem Docker a cada push.
 ## Roadmap
 
 - [ ] Mais fontes: alertas de vaga do LinkedIn por e-mail, InfoJobs e Indeed
-- [ ] Painel web com funil de candidaturas
 - [ ] Sugestão de currículo adaptado por vaga
 - [ ] Lembrete de follow-up para candidaturas sem resposta
 

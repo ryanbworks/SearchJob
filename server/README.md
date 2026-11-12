@@ -35,6 +35,8 @@ ruff check .
 | GET | `/api/jobs/match?url=...` | encontra a vaga da aba atual (extensão) |
 | PATCH | `/api/jobs/{id}` | atualiza status: `applied`, `interview`, `rejected`... |
 | POST | `/api/answer` | gera resposta para pergunta aberta com a IA |
+| GET | `/painel` | painel web (a página pede a chave e busca `/api/dashboard`) |
+| GET | `/api/dashboard?days=30` | dados do painel: lacunas, repetições, funil, tendências |
 | GET | `/api/insights?days=30` | requisitos mais pedidos e funil de candidaturas |
 | POST | `/api/collect` | dispara coleta + análise em segundo plano |
 | GET | `/report` | relatório HTML do dia |

@@ -178,7 +178,7 @@ async function openReport(event) {
     browser.runtime.openOptionsPage();
     return;
   }
-  const url = new URL("/report", settings.serverUrl);
+  const url = new URL("/painel", settings.serverUrl);
   if (settings.apiKey) url.searchParams.set("key", settings.apiKey);
   browser.tabs.create({ url: url.toString() });
   window.close();
