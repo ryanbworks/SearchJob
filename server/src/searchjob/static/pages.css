@@ -1,0 +1,54 @@
+/* Estilos das páginas de entrevista e currículo (complementam base.css). */
+main.narrow { max-width: 1040px; }
+.center { text-align: center; }
+.button.hidden, button.hidden { display: none; }
+textarea {
+  width: 100%; font: inherit; font-size: .9rem; color: var(--text); background: var(--page);
+  border: 1px solid var(--ring); border-radius: 8px; padding: 8px 10px; resize: vertical;
+}
+.notice { border-color: var(--bad); margin-bottom: 16px; }
+.loading { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.spinner {
+  width: 26px; height: 26px; flex: none; border-radius: 50%;
+  border: 3px solid var(--track); border-top-color: var(--series-1);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+
+.pitch {
+  margin: 8px 0 12px; padding: 12px 14px; border-left: 3px solid var(--series-1);
+  background: var(--track); border-radius: 0 8px 8px 0; white-space: pre-line;
+}
+.checklist, .plain-list { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: .9rem; }
+.plain-list li::marker { color: var(--text-2); }
+.good-list li::marker { content: "✓  "; color: var(--good-text); }
+.improve-list li::marker { content: "→  "; color: var(--text-2); }
+
+.qlist { margin: 12px 0 0; padding-left: 22px; display: grid; gap: 18px; }
+.qlist li::marker { font-weight: 700; color: var(--text-2); }
+.question { font-weight: 600; margin: 0 0 6px; }
+details { margin: 6px 0; }
+details summary { cursor: pointer; color: var(--series-1); font-size: .86rem; }
+details[open] summary { margin-bottom: 6px; }
+.answer { display: grid; gap: 8px; margin-top: 8px; justify-items: start; }
+.feedback:empty { display: none; }
+.feedback {
+  width: 100%; border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px;
+  background: var(--page);
+}
+.feedback h4 { margin: 10px 0 4px; font-size: .85rem; }
+.fb-head { display: flex; gap: 10px; align-items: center; }
+.score-big { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.badge.warn { color: var(--text-2); }
+.model { white-space: pre-line; font-size: .9rem; }
+
+.scenarios { display: grid; gap: 16px; margin-top: 12px; }
+.scenario { border-top: 1px solid var(--grid); padding-top: 12px; }
+.scenario:first-child { border-top: 0; padding-top: 0; }
+.scenario h3 { margin-bottom: 4px; }
+.steps { margin: 4px 0 0; padding-left: 22px; display: grid; gap: 4px; font-size: .9rem; }
+
+.star { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 8px 0 0; font-size: .9rem; }
+.star dt { font-weight: 700; }
+.star dd { margin: 0; color: var(--text-2); }

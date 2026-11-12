@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preparação para entrevista</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%232a78d6'/%3E%3Ccircle cx='44' cy='44' r='20' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M58 58l18 18' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/pages.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Preparação para entrevista</h1>
+      <span id="job-meta" class="muted small"></span>
+    </div>
+    <div class="controls">
+      <a class="button" href="/painel">← Painel</a>
+      <a class="button hidden" id="resume-link" href="/curriculo">Currículo para esta vaga</a>
+      <button type="button" id="regen-btn" class="hidden">Gerar de novo</button>
+    </div>
+  </header>
+
+  <main class="narrow">
+    <section id="notice" class="card notice hidden" role="alert"></section>
+
+    <section id="picker" class="card hidden">
+      <h2>Para qual vaga você quer se preparar?</h2>
+      <p class="muted small">Aparecem as vagas em entrevista, as candidatadas e as novas com nota ≥ 6.</p>
+      <div class="row wrap">
+        <select id="job-picker" aria-label="Vaga"></select>
+        <button type="button" class="primary" id="pick-btn">Preparar</button>
+      </div>
+    </section>
+
+    <section id="loading" class="card loading hidden" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <div>
+        <strong>A IA local está montando sua preparação…</strong>
+        <p class="muted small">Pode levar de 1 a 3 minutos, dependendo de onde a IA roda.</p>
+      </div>
+    </section>
+
+    <div id="prep" class="hidden">
+      <div class="grid">
+        <section class="card">
+          <h2>Fale sobre você</h2>
+          <p class="muted small">Roteiro de 60 a 90 segundos. Ajuste com suas palavras e treine em voz alta.</p>
+          <blockquote id="pitch" class="pitch"></blockquote>
+          <button type="button" id="copy-pitch">Copiar roteiro</button>
+        </section>
+
+        <section class="card">
+          <h2>Antes da entrevista</h2>
+          <ul class="checklist">
+            <li>Leia a vaga de novo e marque 3 requisitos que você tem como provar.</li>
+            <li>Pesquise a empresa: o que ela faz, tamanho e se tem service desk interno ou terceirizado.</li>
+            <li>Online: teste câmera, microfone e internet 15 minutos antes, em lugar silencioso.</li>
+            <li>Tenha à mão um exemplo de problema que você resolveu (mesmo fora de TI).</li>
+            <li>Seja honesto sobre o que não sabe e mostre como você buscaria a resposta.</li>
+          </ul>
+        </section>
+
+        <section class="card span-2">
+          <h2>Perguntas prováveis</h2>
+          <p class="muted small">Escreva como você responderia. A IA avalia, aponta melhorias e mostra um exemplo.
+            Suas respostas ficam salvas neste navegador.</p>
+          <ol id="questions" class="qlist"></ol>
+        </section>
+
+        <section class="card span-2">
+          <h2>Casos práticos de suporte</h2>
+          <p class="muted small">Situações que costumam cair em teste técnico ou na entrevista. Pense no diagnóstico
+            passo a passo antes de abrir a resolução.</p>
+          <div id="scenarios" class="scenarios"></div>
+        </section>
+
+        <section class="card">
+          <h2>Perguntas para fazer ao recrutador</h2>
+          <ul id="ask-them" class="plain-list"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Método STAR</h2>
+          <p class="small">Para perguntas do tipo "conte uma situação em que…":</p>
+          <dl class="star">
+            <dt>Situação</dt><dd>Contexto em uma frase.</dd>
+            <dt>Tarefa</dt><dd>O que cabia a você.</dd>
+            <dt>Ação</dt><dd>O que você fez, passo a passo (é a parte principal).</dd>
+            <dt>Resultado</dt><dd>Como terminou e o que aprendeu.</dd>
+          </dl>
+        </section>
+      </div>
+      <p id="generated" class="muted small center"></p>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/common.js"></script>
+  <script src="/static/entrevista.js"></script>
+</body>
+</html>

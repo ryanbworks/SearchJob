@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import secrets
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, TypeVar
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,12 +20,14 @@ from .analyzer import answer_question
 from .config import Settings, get_settings
 from .dashboard import build_dashboard
 from .db import Database
+from .interview import answer_feedback, generate_prep
 from .llm import LLMClient, LLMError, LLMUnavailable
 from .models import JobStatus
 from .pipeline import build_llm, run_cycle
 from .report import build_context, render_report
 
 log = logging.getLogger(__name__)
+T = TypeVar("T")
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -43,6 +46,22 @@ class AnswerRequest(BaseModel):
 
 class AnswerResponse(BaseModel):
     answer: str
+
+
+class FeedbackRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=2000)
+    answer: str = Field(min_length=3, max_length=6000)
+    job_id: int | None = None
+
+
+def call_llm(func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+    """Executa uma chamada à IA convertendo falhas em respostas HTTP claras."""
+    try:
+        return func(*args, **kwargs)
+    except LLMUnavailable as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    except LLMError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
 
 
 def create_app(
@@ -106,6 +125,10 @@ def create_app(
         # A página não contém dados: ela busca /api/dashboard com a chave do usuário.
         return FileResponse(STATIC_DIR / "painel.html")
 
+    @app.get("/entrevista", include_in_schema=False)
+    def entrevista() -> FileResponse:
+        return FileResponse(STATIC_DIR / "entrevista.html")
+
     @app.get("/health")
     def health() -> dict[str, Any]:
         return {"status": "ok", "version": __version__, "llm_model": settings.llm_model}
@@ -145,20 +168,32 @@ def create_app(
     @app.post("/api/answer", dependencies=auth)
     def answer(body: AnswerRequest) -> AnswerResponse:
         job = job_or_404(body.job_id) if body.job_id is not None else None
-        try:
-            text = answer_question(
-                llm,
-                settings.load_profile(),
-                body.question,
-                job=job,
-                page_context=body.page_context,
-                max_chars=body.max_chars,
-            )
-        except LLMUnavailable as exc:
-            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
-        except LLMError as exc:
-            raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+        text = call_llm(
+            answer_question,
+            llm,
+            settings.load_profile(),
+            body.question,
+            job=job,
+            page_context=body.page_context,
+            max_chars=body.max_chars,
+        )
         return AnswerResponse(answer=text)
+
+    @app.post("/api/jobs/{job_id}/interview", dependencies=auth)
+    def interview_prep(job_id: int, regenerate: bool = False) -> dict[str, Any]:
+        """Perguntas prováveis, casos práticos e pitch. Fica em cache por vaga."""
+        job = job_or_404(job_id)
+        if not regenerate and (cached := db.get_document(job_id, "interview")):
+            return cached
+        prep = call_llm(generate_prep, llm, settings.load_profile(), job)
+        return db.save_document(job_id, "interview", prep)
+
+    @app.post("/api/interview/feedback", dependencies=auth)
+    def interview_feedback(body: FeedbackRequest) -> dict[str, Any]:
+        job = job_or_404(body.job_id) if body.job_id is not None else None
+        return call_llm(
+            answer_feedback, llm, settings.load_profile(), body.question, body.answer, job=job
+        )
 
     @app.get("/api/insights", dependencies=auth)
     def insights(days: Annotated[int, Query(ge=1, le=365)] = 30) -> dict[str, Any]:
