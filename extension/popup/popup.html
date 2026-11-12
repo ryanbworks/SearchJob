@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../lib/ui.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="row">
+    <h1>SearchJob</h1>
+    <span class="spacer"></span>
+    <span id="server-dot" class="dot" title="Servidor"></span>
+    <span id="server-label" class="muted small">verificando…</span>
+  </header>
+
+  <section>
+    <h2>Vaga desta candidatura</h2>
+    <select id="job-select">
+      <option value="">Não vincular (usar texto da página)</option>
+    </select>
+    <div id="job-info" class="small muted"></div>
+  </section>
+
+  <section>
+    <button id="fill-btn" class="primary wide">Preencher formulário</button>
+    <div id="fill-status" class="status"></div>
+    <div id="questions"></div>
+  </section>
+
+  <section>
+    <button id="applied-btn" class="wide">Marcar como candidatado</button>
+    <div id="applied-status" class="status"></div>
+  </section>
+
+  <footer class="row small">
+    <a href="#" id="options-link">Editar perfil e servidor</a>
+    <span class="spacer"></span>
+    <a href="#" id="report-link">Relatório do dia</a>
+  </footer>
+
+  <script src="../lib/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

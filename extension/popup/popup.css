@@ -1,0 +1,11 @@
+body { width: 360px; padding: 14px; }
+header { margin-bottom: 4px; }
+footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
+footer a { color: var(--accent); text-decoration: none; }
+.spacer { flex: 1; }
+.small { font-size: .8rem; }
+.wide { width: 100%; margin-top: 12px; }
+#job-info { margin-top: 6px; }
+.question { margin-top: 8px; }
+.question p { margin: 0 0 6px; font-size: .85rem; }
+.question button { padding: 4px 10px; font-size: .8rem; }

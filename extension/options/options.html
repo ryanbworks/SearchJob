@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SearchJob — Perfil e servidor</title>
+  <link rel="stylesheet" href="../lib/ui.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>SearchJob — Perfil e servidor</h1>
+    <p class="muted">
+      Tudo fica salvo apenas neste navegador. Por segurança, documentos como CPF e RG
+      não são armazenados: preencha-os você mesmo em cada site.
+    </p>
+
+    <form id="form">
+      <fieldset>
+        <legend>Servidor SearchJob</legend>
+        <label for="serverUrl">Endereço do servidor</label>
+        <input id="serverUrl" type="url" placeholder="http://192.168.0.50:8000" autocomplete="off">
+        <label for="apiKey">Chave de API (SJ_API_KEY)</label>
+        <input id="apiKey" type="password" autocomplete="off">
+        <label class="check"><input id="overwrite" type="checkbox"> Sobrescrever campos já preenchidos</label>
+        <div class="row">
+          <button type="button" id="test-btn">Testar conexão</button>
+          <span id="test-status" class="status"></span>
+        </div>
+      </fieldset>
+
+      <div id="profile-fields"></div>
+
+      <div class="actions row">
+        <button type="submit" class="primary">Salvar</button>
+        <span id="save-status" class="status"></span>
+      </div>
+    </form>
+  </main>
+
+  <script src="../lib/fields.js"></script>
+  <script src="../lib/api.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

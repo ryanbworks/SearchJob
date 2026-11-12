@@ -1,0 +1,16 @@
+{
+  "name": "searchjob-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Extensão do Firefox do SearchJob: preenchimento de candidaturas com IA local.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/",
+    "lint": "web-ext lint --source-dir . --ignore-files tests package.json",
+    "start": "web-ext run --source-dir . --ignore-files tests package.json",
+    "build": "web-ext build --source-dir . --overwrite-dest --ignore-files tests package.json"
+  },
+  "devDependencies": {
+    "web-ext": "^8.3.0"
+  }
+}

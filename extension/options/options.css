@@ -1,0 +1,11 @@
+main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+fieldset { border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px 16px; margin: 20px 0 0; }
+legend { font-weight: 600; padding: 0 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); column-gap: 16px; }
+.grid .full { grid-column: 1 / -1; }
+label.check { display: flex; gap: 8px; align-items: center; color: var(--text); margin-top: 14px; }
+label.check input { width: auto; }
+.row .status { margin-top: 0; }
+#test-btn { margin-top: 12px; }
+.actions { position: sticky; bottom: 0; background: var(--bg); padding: 14px 0; margin-top: 16px;
+           border-top: 1px solid var(--border); }
