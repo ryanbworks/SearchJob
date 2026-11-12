@@ -105,7 +105,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 20px 24px 64px; }
 .login input { flex: 1; }
 
 /* KPIs */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px 16px; }
 .kpi .value { font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
 .kpi .label { color: var(--text-2); font-size: .82rem; }

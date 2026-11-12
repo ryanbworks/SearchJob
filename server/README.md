@@ -15,6 +15,7 @@ cp data/profile.example.md data/profile.md
 
 searchjob collect                  # coleta vagas agora
 searchjob analyze                  # dá nota às vagas com a IA
+searchjob email                    # lê alertas de vaga e respostas (IMAP)
 searchjob report                   # gera data/reports/AAAA-MM-DD.html
 searchjob serve                    # API em http://localhost:8000/docs
 ```
@@ -37,6 +38,11 @@ ruff check .
 | POST | `/api/answer` | gera resposta para pergunta aberta com a IA |
 | GET | `/painel` | painel web (a página pede a chave e busca `/api/dashboard`) |
 | GET | `/api/dashboard?days=30` | dados do painel: lacunas, repetições, funil, tendências |
+| GET | `/entrevista?job=ID` | página de preparação para entrevista |
+| GET | `/curriculo?job=ID` | página do currículo adaptado (folha A4, "Salvar PDF") |
+| POST | `/api/jobs/{id}/interview` | perguntas, casos práticos e pitch (`?regenerate=true` refaz) |
+| POST | `/api/interview/feedback` | avalia uma resposta de treino |
+| POST | `/api/jobs/{id}/resume` | currículo adaptado + contato e formação do perfil |
 | GET | `/api/insights?days=30` | requisitos mais pedidos e funil de candidaturas |
 | POST | `/api/collect` | dispara coleta + análise em segundo plano |
 | GET | `/report` | relatório HTML do dia |
