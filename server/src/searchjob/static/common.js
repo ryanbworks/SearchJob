@@ -9,6 +9,16 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* modo privado */ } },
   };
 
+  // Aceita ?key= uma vez (vindo da extensão), guarda localmente e limpa a URL.
+  (function captureKeyFromUrl() {
+    const url = new URL(window.location.href);
+    const key = url.searchParams.get("key");
+    if (!key) return;
+    storage.set(KEY_STORAGE, key);
+    url.searchParams.delete("key");
+    history.replaceState(null, "", url.pathname + url.search);
+  })();
+
   /** Cria um elemento. Texto nunca é interpretado como HTML. */
   function el(tag, attrs, ...children) {
     const node = document.createElement(tag);

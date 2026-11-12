@@ -33,6 +33,20 @@ function selectedJob() {
 function renderJobInfo() {
   const job = selectedJob();
   $("job-info").textContent = job ? describeJob(job) : "";
+  $("job-links").classList.toggle("hidden", !job);
+}
+
+/** Abre uma página do servidor (painel, entrevista, currículo) numa nova aba. */
+async function openServerPage(path, params) {
+  const settings = await SJ.getSettings();
+  if (!settings.serverUrl) {
+    browser.runtime.openOptionsPage();
+    return;
+  }
+  const url = new URL(path, settings.serverUrl);
+  for (const [k, v] of Object.entries(params || {})) url.searchParams.set(k, v);
+  browser.tabs.create({ url: url.toString() });
+  window.close();
 }
 
 async function loadServerState() {
@@ -174,14 +188,8 @@ async function markApplied() {
 async function openReport(event) {
   event.preventDefault();
   const settings = await SJ.getSettings();
-  if (!settings.serverUrl) {
-    browser.runtime.openOptionsPage();
-    return;
-  }
-  const url = new URL("/painel", settings.serverUrl);
-  if (settings.apiKey) url.searchParams.set("key", settings.apiKey);
-  browser.tabs.create({ url: url.toString() });
-  window.close();
+  // O painel guarda a chave localmente; as outras páginas reaproveitam.
+  openServerPage("/painel", settings.apiKey ? { key: settings.apiKey } : {});
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -195,5 +203,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.close();
   });
   $("report-link").addEventListener("click", openReport);
+  document.querySelectorAll("#job-links a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const job = selectedJob();
+      if (!job) return;
+      SJ.getSettings().then((s) => openServerPage(link.dataset.page, {
+        job: String(job.id),
+        ...(s.apiKey ? { key: s.apiKey } : {}),
+      }));
+    });
+  });
   loadServerState();
 });

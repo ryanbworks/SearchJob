@@ -415,6 +415,11 @@
       el("td", {}, location),
       el("td", {}, el("div", { class: "missing" }, (job.missing || []).join(", ") || "–")),
       el("td", {}, select),
+      el("td", { class: "actions-cell" },
+        el("a", { href: `/entrevista?job=${job.id}`, title: "Perguntas prováveis e treino" },
+          "Entrevista"),
+        el("a", { href: `/curriculo?job=${job.id}`, title: "Currículo adaptado a esta vaga" },
+          "Currículo")),
     );
   }
 

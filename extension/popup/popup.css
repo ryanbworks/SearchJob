@@ -6,6 +6,8 @@ footer a { color: var(--accent); text-decoration: none; }
 .small { font-size: .8rem; }
 .wide { width: 100%; margin-top: 12px; }
 #job-info { margin-top: 6px; }
+.job-links { margin-top: 6px; gap: 14px; }
+.job-links a { color: var(--accent); text-decoration: none; }
 .question { margin-top: 8px; }
 .question p { margin: 0 0 6px; font-size: .85rem; }
 .question button { padding: 4px 10px; font-size: .8rem; }
