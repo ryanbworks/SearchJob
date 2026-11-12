@@ -23,6 +23,12 @@ def daily_report(db: Database, settings: Settings) -> None:
     send_telegram(settings, format_summary(context["jobs"]))
 
 
+def apply_schedule(scheduler: BackgroundScheduler, settings: Settings) -> None:
+    """Reaplica intervalo de coleta e hora do relatório depois de mudar as preferências."""
+    scheduler.reschedule_job("collect", trigger="interval", hours=settings.collect_every_hours)
+    scheduler.reschedule_job("daily_report", trigger="cron", hour=settings.report_hour)
+
+
 def start_scheduler(settings: Settings, db: Database, llm: LLMClient) -> BackgroundScheduler:
     scheduler = BackgroundScheduler(timezone=settings.timezone)
     scheduler.add_job(

@@ -24,8 +24,19 @@ from .interview import answer_feedback, generate_prep
 from .llm import LLMClient, LLMError, LLMUnavailable
 from .models import JobStatus
 from .pipeline import build_llm, run_cycle
+from .preferences import (
+    MAX_PROFILE_CHARS,
+    Preferences,
+    apply_preferences,
+    load_preferences,
+    read_profile_raw,
+    reset_preferences,
+    save_preferences,
+    write_profile,
+)
 from .report import build_context, render_report
 from .resume import generate_resume, profile_section
+from .settings_view import build_config_view
 
 log = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -47,6 +58,10 @@ class AnswerRequest(BaseModel):
 
 class AnswerResponse(BaseModel):
     answer: str
+
+
+class ProfileUpdate(BaseModel):
+    markdown: str = Field(min_length=20, max_length=MAX_PROFILE_CHARS)
 
 
 class FeedbackRequest(BaseModel):
@@ -71,21 +86,32 @@ def create_app(
     llm: LLMClient | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
+    # Preferências salvas pelo painel sobrepõem o .env.
+    apply_preferences(settings, load_preferences(settings))
     db = db or Database(settings.database_path)
     llm = llm or build_llm(settings)
+    runtime: dict[str, Any] = {"scheduler": None}
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        scheduler = None
         if settings.scheduler_enabled:
             from .scheduler import start_scheduler
 
-            scheduler = start_scheduler(settings, db, llm)
+            runtime["scheduler"] = start_scheduler(settings, db, llm)
         if not settings.api_key:
             log.warning("SJ_API_KEY vazio: a API está sem autenticação!")
         yield
-        if scheduler:
-            scheduler.shutdown(wait=False)
+        if runtime["scheduler"]:
+            runtime["scheduler"].shutdown(wait=False)
+
+    def refresh_runtime() -> None:
+        """Leva as preferências novas para a IA e o agendador em execução."""
+        llm.base_url = settings.llm_base_url.rstrip("/")
+        llm.model = settings.llm_model
+        if runtime["scheduler"]:
+            from .scheduler import apply_schedule
+
+            apply_schedule(runtime["scheduler"], settings)
 
     app = FastAPI(
         title="SearchJob API",
@@ -133,6 +159,42 @@ def create_app(
     @app.get("/curriculo", include_in_schema=False)
     def curriculo() -> FileResponse:
         return FileResponse(STATIC_DIR / "curriculo.html")
+
+    @app.get("/configuracoes", include_in_schema=False)
+    def configuracoes() -> FileResponse:
+        return FileResponse(STATIC_DIR / "configuracoes.html")
+
+    @app.get("/api/config", dependencies=auth)
+    def config_view() -> dict[str, Any]:
+        """Configuração em vigor, verificações e perfil. Nunca devolve senhas ou chaves."""
+        return build_config_view(settings, db, llm)
+
+    @app.put("/api/preferences", dependencies=auth)
+    def update_preferences(body: Preferences) -> dict[str, Any]:
+        """Salva as preferências editáveis e aplica na hora (sem reiniciar)."""
+        save_preferences(settings, body)
+        refresh_runtime()
+        return build_config_view(settings, db, llm)
+
+    @app.delete("/api/preferences", dependencies=auth)
+    def clear_preferences() -> dict[str, Any]:
+        """Volta para os valores do .env."""
+        reset_preferences(settings)
+        refresh_runtime()
+        return build_config_view(settings, db, llm)
+
+    @app.get("/api/profile", dependencies=auth)
+    def get_profile() -> dict[str, Any]:
+        return {
+            "markdown": read_profile_raw(settings),
+            "using_example": not settings.profile_path.exists(),
+        }
+
+    @app.put("/api/profile", dependencies=auth)
+    def put_profile(body: ProfileUpdate) -> dict[str, Any]:
+        """Grava o data/profile.md (perfil + bloco de contato)."""
+        write_profile(settings, body.markdown)
+        return build_config_view(settings, db, llm)
 
     @app.get("/health")
     def health() -> dict[str, Any]:

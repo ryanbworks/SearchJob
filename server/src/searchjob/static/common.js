@@ -60,9 +60,13 @@
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json()).detail; } catch (e) { detail = ""; }
+      if (Array.isArray(detail)) {
+        // Erro de validação do FastAPI: [{loc: [...], msg: "..."}]
+        detail = detail.map((d) => `${(d.loc || []).slice(1).join(".")}: ${d.msg}`).join("; ");
+      }
       const messages = {
         401: "Chave de acesso ausente ou inválida. Entre pelo painel primeiro.",
-        404: "Vaga não encontrada.",
+        404: "Não encontrado.",
         503: "A IA local está offline. Ligue o Ollama/LM Studio e tente de novo.",
       };
       throw new ApiError(messages[res.status] || detail || `Erro ${res.status}`, res.status);

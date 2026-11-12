@@ -42,6 +42,12 @@ resolve quatro problemas reais:
 </table>
 
 <details>
+<summary>Aba Configurações</summary>
+
+![Aba Configurações: verificação, preferências e segredos do .env](docs/img/configuracoes.png)
+</details>
+
+<details>
 <summary>Painel no modo escuro</summary>
 
 ![Painel no modo escuro](docs/img/painel-escuro.png)
@@ -104,6 +110,10 @@ flowchart LR
 - **Currículo adaptado por vaga** (`/curriculo`): a IA reorganiza o perfil pelo que a vaga
   pede; habilidades que não estão no perfil são **removidas automaticamente**. Folha A4
   editável com "Salvar PDF".
+- **Aba Configurações** (`/configuracoes`): verificação do que está certo e do que falta,
+  preferências editáveis que valem na hora (busca, filtros, IA, agenda), editor do perfil
+  com prévia em Markdown e histórico de coletas. Senhas ficam só no `.env`.
+  Veja [`docs/configuracao.md`](docs/configuracao.md).
 - Relatório diário em HTML com ranking das vagas e aviso opcional pelo Telegram.
 - API REST documentada (OpenAPI em `/docs`), protegida por chave.
 - Acompanhamento de status: nova → candidatado → entrevista → proposta / recusada.
@@ -143,6 +153,7 @@ docker compose exec searchjob searchjob cycle   # primeira coleta + análise
 ```
 
 - Painel: `http://localhost:8000/painel` (pede a chave na primeira vez)
+- Configurações: `http://localhost:8000/configuracoes` (guia em [`docs/configuracao.md`](docs/configuracao.md))
 - Relatório: `http://localhost:8000/report?key=SUA_CHAVE`
 - API: `http://localhost:8000/docs`
 - Extensão: veja [`extension/README.md`](extension/README.md)

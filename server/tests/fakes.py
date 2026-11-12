@@ -13,6 +13,8 @@ def fake_llm(*replies: str, status: int = 200) -> tuple[LLMClient, list[dict]]:
     queue = list(replies)
 
     def handler(request: httpx.Request) -> httpx.Response:
+        if request.method != "POST":  # ex.: GET /models da verificação de status
+            return httpx.Response(200, json={"data": [{"id": "modelo-teste"}]})
         sent.append(json.loads(request.content))
         content = queue.pop(0) if queue else ""
         return httpx.Response(

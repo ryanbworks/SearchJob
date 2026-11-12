@@ -43,6 +43,10 @@ ruff check .
 | POST | `/api/jobs/{id}/interview` | perguntas, casos práticos e pitch (`?regenerate=true` refaz) |
 | POST | `/api/interview/feedback` | avalia uma resposta de treino |
 | POST | `/api/jobs/{id}/resume` | currículo adaptado + contato e formação do perfil |
+| GET | `/configuracoes` | aba de configurações (verificação, preferências, perfil) |
+| GET | `/api/config` | configuração em vigor e verificações (sem segredos) |
+| PUT / DELETE | `/api/preferences` | salva preferências (`data/preferences.json`) / volta ao `.env` |
+| GET / PUT | `/api/profile` | lê / grava o `data/profile.md` |
 | GET | `/api/insights?days=30` | requisitos mais pedidos e funil de candidaturas |
 | POST | `/api/collect` | dispara coleta + análise em segundo plano |
 | GET | `/report` | relatório HTML do dia |

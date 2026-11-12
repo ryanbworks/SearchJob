@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurações do SearchJob</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%232a78d6'/%3E%3Ccircle cx='44' cy='44' r='20' fill='none' stroke='white' stroke-width='9'/%3E%3Cpath d='M58 58l18 18' stroke='white' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/base.css">
+  <link rel="stylesheet" href="/static/pages.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Configurações</h1>
+      <span class="muted small">Confira se está tudo certo e ajuste o SearchJob</span>
+    </div>
+    <div class="controls">
+      <a class="button" href="/painel">← Painel</a>
+    </div>
+  </header>
+
+  <main class="narrow">
+    <section id="notice" class="card notice hidden" role="alert"></section>
+
+    <section id="status" class="card status-card hidden" aria-label="Verificação">
+      <div class="status-hero">
+        <div class="hero-ring" id="status-ring"><span id="ok-count">–</span><small>/<span id="total-count">–</span></small></div>
+        <div>
+          <h2 id="status-title">Verificando…</h2>
+          <p class="muted small" id="status-sub"></p>
+        </div>
+      </div>
+      <ul id="checks" class="checks"></ul>
+    </section>
+
+    <div id="content" class="hidden">
+      <nav class="tabs" role="tablist" aria-label="Seções">
+        <button type="button" role="tab" id="tab-btn-prefs" aria-controls="tab-prefs" aria-selected="true">Preferências</button>
+        <button type="button" role="tab" id="tab-btn-profile" aria-controls="tab-profile" aria-selected="false">Perfil (profile.md)</button>
+        <button type="button" role="tab" id="tab-btn-runs" aria-controls="tab-runs" aria-selected="false">Coletas</button>
+      </nav>
+
+      <!-- Preferências -->
+      <section id="tab-prefs" role="tabpanel" aria-labelledby="tab-btn-prefs">
+        <form id="prefs-form" novalidate>
+          <div class="grid">
+            <fieldset class="card">
+              <legend>Busca</legend>
+              <div class="field">
+                <label for="f-search_terms-input">Termos de busca</label>
+                <div class="taginput" id="f-search_terms"></div>
+                <p class="hint">Pressione Enter para adicionar. Ex.: suporte técnico, help desk.</p>
+              </div>
+              <div class="field">
+                <label for="f-preferred_states-input">Estados preferidos</label>
+                <div class="taginput" id="f-preferred_states"></div>
+                <p class="hint">Vazio = Brasil todo. Vagas remotas sempre entram.</p>
+              </div>
+              <div class="field">
+                <label for="f-max_pages_per_term">Páginas por termo</label>
+                <input id="f-max_pages_per_term" type="number" min="1" max="20">
+                <p class="hint">Cada página traz até 50 vagas.</p>
+              </div>
+            </fieldset>
+
+            <fieldset class="card">
+              <legend>Filtros</legend>
+              <div class="field">
+                <label for="f-exclude_title_terms-input">Descartar títulos com</label>
+                <div class="taginput" id="f-exclude_title_terms"></div>
+              </div>
+              <div class="field">
+                <label for="f-blocked_terms-input">Termos bloqueados (título ou descrição)</label>
+                <div class="taginput" id="f-blocked_terms"></div>
+                <p class="hint">Ex.: comissão, vendas externas, telemarketing ativo.</p>
+              </div>
+              <div class="field">
+                <label for="f-max_experience_years">Máximo de anos de experiência</label>
+                <input id="f-max_experience_years" type="number" min="0" max="20">
+                <p class="hint">Acima disso a vaga ganha um aviso e nota menor.</p>
+              </div>
+            </fieldset>
+
+            <fieldset class="card">
+              <legend>IA local</legend>
+              <div class="field">
+                <label for="f-llm_base_url">Endereço</label>
+                <input id="f-llm_base_url" type="url" placeholder="http://192.168.0.10:1234/v1">
+                <p class="hint">Ollama: <code>http://ollama:11434/v1</code> · LM Studio: <code>http://IP-DO-PC:1234/v1</code></p>
+              </div>
+              <div class="field">
+                <label for="f-llm_model">Modelo</label>
+                <input id="f-llm_model" type="text" placeholder="qwen2.5:7b-instruct">
+              </div>
+              <p class="small">Status: <span id="llm-status" class="badge">–</span></p>
+            </fieldset>
+
+            <fieldset class="card">
+              <legend>Agenda</legend>
+              <div class="field">
+                <label for="f-collect_every_hours">Coletar a cada (horas)</label>
+                <input id="f-collect_every_hours" type="number" min="1" max="24">
+              </div>
+              <div class="field">
+                <label for="f-report_hour">Relatório diário às (hora)</label>
+                <input id="f-report_hour" type="number" min="0" max="23">
+              </div>
+              <p class="hint">Fuso: <span id="timezone">–</span>. Muda na hora, sem reiniciar.</p>
+            </fieldset>
+
+            <section class="card span-2 secrets">
+              <h2>Só no arquivo <code>.env</code> (segredos)</h2>
+              <p class="muted small">Por segurança, senhas e chaves não são editáveis pela web.
+                Edite <code>server/.env</code> e reinicie com <code>docker compose up -d</code>.</p>
+              <ul id="secrets" class="secret-list"></ul>
+            </section>
+          </div>
+
+          <div class="savebar">
+            <span id="dirty" class="muted small"></span>
+            <span class="spacer"></span>
+            <button type="button" id="reset-prefs">Voltar aos valores do .env</button>
+            <button type="submit" class="primary" id="save-prefs">Salvar preferências</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Perfil -->
+      <section id="tab-profile" role="tabpanel" aria-labelledby="tab-btn-profile" hidden>
+        <div class="profile-grid">
+          <section class="card">
+            <div class="row between wrap">
+              <h2>Editar <code>data/profile.md</code></h2>
+              <span id="profile-example" class="badge bad hidden">Usando o exemplo</span>
+            </div>
+            <p class="muted small">É o que a IA lê para dar notas, preparar a entrevista e montar o
+              currículo. O bloco entre <code>---</code> no topo é o contato do currículo e não vai para a IA.</p>
+            <textarea id="profile-editor" class="editor" spellcheck="true" aria-label="Conteúdo do profile.md"></textarea>
+            <div class="row wrap profile-actions">
+              <span id="profile-count" class="muted small"></span>
+              <span class="spacer"></span>
+              <button type="button" id="profile-revert">Desfazer alterações</button>
+              <button type="button" class="primary" id="profile-save">Salvar perfil</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Prévia</h2>
+            <div id="contact-chips" class="chips"></div>
+            <article id="profile-preview" class="md-preview" aria-live="polite"></article>
+            <h3 class="mt">Requisitos reconhecidos no perfil</h3>
+            <p class="muted small">Usados no "seu perfil × mercado" do painel. Atualiza ao salvar.</p>
+            <div id="profile-skills" class="chips"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Coletas -->
+      <section id="tab-runs" role="tabpanel" aria-labelledby="tab-btn-runs" hidden>
+        <section class="card">
+          <h2>Últimas coletas (7 dias)</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Quando</th><th class="num">Encontradas</th><th class="num">Novas</th>
+                <th class="num">Descartadas</th><th class="num">Analisadas</th><th class="num">Erros</th></tr></thead>
+              <tbody id="runs-body"></tbody>
+            </table>
+          </div>
+          <p id="runs-empty" class="muted small hidden">Nenhuma coleta nos últimos 7 dias.</p>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/common.js"></script>
+  <script src="/static/configuracoes.js"></script>
+</body>
+</html>
