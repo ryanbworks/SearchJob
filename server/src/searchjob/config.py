@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     ]
     # Filtro opcional por UF/estado (ex.: ["São Paulo", "SP"]). Vagas remotas sempre passam.
     preferred_states: list[str] = []
+    # Vagas com estes termos no título são descartadas na coleta.
+    exclude_title_terms: list[str] = [
+        "senior", "sênior", "sr", "pleno", "coordenador", "coordenadora", "gerente",
+        "especialista", "supervisor", "supervisora", "lider", "líder", "head",
+    ]
+    # Termos que descartam a vaga se aparecerem no título ou na descrição (ex.: "comissão").
+    blocked_terms: list[str] = []
+    # Acima disso a vaga é mantida, mas recebe um aviso e a IA considera isso na nota.
+    max_experience_years: int = 2
     max_pages_per_term: int = 4
     request_delay_seconds: float = 1.0
 

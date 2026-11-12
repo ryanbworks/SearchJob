@@ -29,6 +29,10 @@ class JobPosting:
     published_at: str | None = None
     deadline: str | None = None
     skills: list[str] = field(default_factory=list)
+    salary_min: float | None = None
+    salary_max: float | None = None
+    min_experience: int | None = None  # anos exigidos, quando a vaga informa
+    flags: list[str] = field(default_factory=list)  # avisos (ex.: "Pede 5 anos de experiência")
 
     @property
     def is_remote(self) -> bool:

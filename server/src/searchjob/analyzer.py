@@ -24,7 +24,7 @@ PERFIL DO CANDIDATO:
 {profile}
 
 VAGA: {title} — {company} ({location})
-DESCRIÇÃO:
+{warnings}DESCRIÇÃO:
 {description}
 
 Responda neste formato JSON:
@@ -73,6 +73,7 @@ def analyze_job(llm: LLMClient, profile: str, job: dict[str, Any]) -> Analysis:
         title=job.get("title", ""),
         company=job.get("company") or "empresa não informada",
         location=_location(job),
+        warnings=(f"AVISOS DETECTADOS: {'; '.join(job['flags'])}\n" if job.get("flags") else ""),
         description=(job.get("description") or "")[:MAX_DESCRIPTION_CHARS],
     )
     raw = llm.chat(

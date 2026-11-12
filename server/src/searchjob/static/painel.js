@@ -10,6 +10,17 @@
   };
   const $ = (id) => document.getElementById(id);
   const fmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+  const brl = new Intl.NumberFormat("pt-BR", {
+    style: "currency", currency: "BRL", maximumFractionDigits: 0,
+  });
+
+  function salaryText(job) {
+    if (!job.salary_min) return "";
+    if (job.salary_max && job.salary_max !== job.salary_min) {
+      return `${brl.format(job.salary_min)} – ${brl.format(job.salary_max)}`;
+    }
+    return brl.format(job.salary_min);
+  }
   const state = { days: 30, data: null, searchTimer: null };
 
   // ------------------------------------------------------------ utilidades
@@ -200,6 +211,9 @@
       ["Vagas boas (nota ≥ 7)", fmt.format(k.good_matches), "para priorizar"],
       ["Candidaturas enviadas", fmt.format(k.applications), "desde o início"],
       ["Taxa de resposta", `${fmt.format(k.response_rate)}%`, "entrevista ou proposta"],
+      ["Salário mediano", k.salary_median ? brl.format(k.salary_median) : "–",
+        k.salary_count ? `em ${k.salary_count} vaga(s) que informam` : "nenhuma vaga informou"],
+      ["Descartadas na coleta", fmt.format(k.excluded || 0), "sênior, termos bloqueados…"],
     ];
     $("kpis").replaceChildren(...items.map(([label, value, hint]) => el(
       "div", { class: "kpi" },
@@ -337,6 +351,17 @@
     box.replaceChildren(stack, legend);
   }
 
+  function renderFilters(d) {
+    hbars($("excluded"), (d.excluded_reasons || []).map((r) => ({
+      label: r.label, value: r.count, text: fmt.format(r.count),
+      tipBody: `${r.count} vaga(s) descartada(s) no período`,
+    })), { empty: "Nenhuma vaga descartada no período." });
+    hbars($("flags"), (d.flags || []).map((f) => ({
+      label: f.label, value: f.count, text: fmt.format(f.count),
+      tipBody: `${f.count} vaga(s), ${fmt.format(f.percent)}% do período`,
+    })), { empty: "Nenhum aviso nas vagas do período." });
+  }
+
   function renderStates(d) {
     hbars($("states"), d.states.map((s) => ({
       label: s.label, value: s.count, text: `${fmt.format(s.percent)}%`,
@@ -384,7 +409,9 @@
       el("td", { class: "num" }, el("span", { class: "score-pill" }, job.score ?? "–")),
       el("td", {},
         el("a", { href: job.url, target: "_blank", rel: "noopener" }, job.title),
-        el("div", { class: "company" }, job.company || "Empresa não informada")),
+        el("div", { class: "company" }, job.company || "Empresa não informada"),
+        salaryText(job) ? el("div", { class: "salary" }, salaryText(job)) : null,
+        ...(job.flags || []).map((f) => el("div", { class: "flag" }, `⚠ ${f}`))),
       el("td", {}, location),
       el("td", {}, el("div", { class: "missing" }, (job.missing || []).join(", ") || "–")),
       el("td", {}, select),
@@ -408,6 +435,7 @@
     renderFunnel(d);
     renderWorkplace(d);
     renderStates(d);
+    renderFilters(d);
   }
 
   async function load() {

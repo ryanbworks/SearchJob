@@ -12,6 +12,7 @@ from .analyzer import analyze_pending
 from .collectors import Collector, GupyCollector
 from .config import Settings
 from .db import Database
+from .filters import enrich, exclusion_reason
 from .llm import LLMClient
 from .models import JobPosting
 from .skills import normalize
@@ -45,21 +46,41 @@ def passes_location(job: JobPosting, preferred_states: Sequence[str]) -> bool:
     return normalize(job.state) in wanted
 
 
+def new_stats() -> dict[str, Any]:
+    return {"found": 0, "new": 0, "filtered": 0, "excluded": 0, "excluded_reasons": {},
+            "errors": []}
+
+
+def store_job(db: Database, settings: Settings, job: JobPosting, stats: dict[str, Any]) -> None:
+    """Aplica localização, exclusões e enriquecimento e salva. Usado por todas as fontes."""
+    stats["found"] += 1
+    if not passes_location(job, settings.preferred_states):
+        stats["filtered"] += 1
+        return
+    reason = exclusion_reason(job, settings.exclude_title_terms, settings.blocked_terms)
+    if reason:
+        stats["excluded"] += 1
+        reasons = stats["excluded_reasons"]
+        reasons[reason] = reasons.get(reason, 0) + 1
+        return
+    enrich(job, settings.max_experience_years)
+    if db.upsert_job(job):
+        stats["new"] += 1
+
+
 def collect(
-    db: Database, settings: Settings, collectors: Sequence[Collector] | None = None
+    db: Database,
+    settings: Settings,
+    collectors: Sequence[Collector] | None = None,
+    stats: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     collectors = collectors if collectors is not None else build_collectors(settings)
-    stats: dict[str, Any] = {"found": 0, "new": 0, "filtered": 0, "errors": []}
+    stats = stats if stats is not None else new_stats()
     for collector in collectors:
         for term in settings.search_terms:
             try:
                 for job in collector.fetch(term):
-                    stats["found"] += 1
-                    if not passes_location(job, settings.preferred_states):
-                        stats["filtered"] += 1
-                        continue
-                    if db.upsert_job(job):
-                        stats["new"] += 1
+                    store_job(db, settings, job, stats)
             except httpx.HTTPError as exc:
                 msg = f"{collector.source} / '{term}': {exc}"
                 log.warning("Falha na coleta: %s", msg)
@@ -73,4 +94,5 @@ def run_cycle(db: Database, settings: Settings, llm: LLMClient) -> dict[str, Any
     stats["analyzed"] = analyze_pending(
         db, llm, settings.load_profile(), limit=settings.analyze_batch_size
     )
+    db.save_run(stats)
     return stats

@@ -44,6 +44,7 @@ def main(argv: list[str] | None = None) -> None:
     db = Database(settings.database_path)
     if args.command == "collect":
         result = collect(db, settings)
+        db.save_run(result)
     elif args.command == "analyze":
         result = {"analyzed": analyze_pending(db, build_llm(settings), settings.load_profile(),
                                               limit=settings.analyze_batch_size)}

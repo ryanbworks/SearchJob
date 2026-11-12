@@ -41,9 +41,37 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs (status);
 CREATE INDEX IF NOT EXISTS idx_jobs_collected ON jobs (collected_at);
+
+CREATE TABLE IF NOT EXISTS ai_documents (
+    job_id     INTEGER NOT NULL REFERENCES jobs (id) ON DELETE CASCADE,
+    kind       TEXT NOT NULL,
+    content    TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (job_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS collect_runs (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    ran_at   TEXT NOT NULL,
+    stats    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS processed_emails (
+    message_id   TEXT PRIMARY KEY,
+    processed_at TEXT NOT NULL,
+    outcome      TEXT
+);
 """
 
-JSON_COLUMNS = ("skills", "requirements", "missing")
+# Colunas adicionadas depois da primeira versão. Aplicadas em bancos novos e antigos.
+MIGRATIONS: dict[str, str] = {
+    "salary_min": "REAL",
+    "salary_max": "REAL",
+    "min_experience": "INTEGER",
+    "flags": "TEXT NOT NULL DEFAULT '[]'",
+}
+
+JSON_COLUMNS = ("skills", "requirements", "missing", "flags")
 
 
 def _now() -> str:
@@ -90,6 +118,10 @@ class Database:
     def init(self) -> None:
         with self.conn() as c:
             c.executescript(SCHEMA)
+            existing = {row["name"] for row in c.execute("PRAGMA table_info(jobs)")}
+            for column, ddl in MIGRATIONS.items():
+                if column not in existing:
+                    c.execute(f"ALTER TABLE jobs ADD COLUMN {column} {ddl}")
 
     # ------------------------------------------------------------------ escrita
     def upsert_job(self, job: JobPosting) -> bool:
@@ -99,15 +131,23 @@ class Database:
                 "SELECT 1 FROM jobs WHERE source = ? AND external_id = ?",
                 (job.source, job.external_id),
             ).fetchone()
+            extracted = (
+                job.salary_min,
+                job.salary_max,
+                job.min_experience,
+                json.dumps(job.flags, ensure_ascii=False),
+            )
             if exists:
                 c.execute(
-                    """UPDATE jobs SET title = ?, description = ?, deadline = ?, skills = ?
+                    """UPDATE jobs SET title = ?, description = ?, deadline = ?, skills = ?,
+                              salary_min = ?, salary_max = ?, min_experience = ?, flags = ?
                        WHERE source = ? AND external_id = ?""",
                     (
                         job.title,
                         job.description,
                         job.deadline,
                         json.dumps(job.skills, ensure_ascii=False),
+                        *extracted,
                         job.source,
                         job.external_id,
                     ),
@@ -117,8 +157,8 @@ class Database:
                 """
                 INSERT INTO jobs (source, external_id, title, company, description, url, city,
                                   state, workplace_type, published_at, deadline, skills,
-                                  collected_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                  collected_at, salary_min, salary_max, min_experience, flags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     job.source,
@@ -134,6 +174,7 @@ class Database:
                     job.deadline,
                     json.dumps(job.skills, ensure_ascii=False),
                     _now(),
+                    *extracted,
                 ),
             )
             return True
@@ -241,11 +282,77 @@ class Database:
             rows = c.execute(
                 """SELECT id, source, title, company, url, city, state, workplace_type,
                           published_at, collected_at, skills, score, summary, requirements,
-                          missing, status, status_updated_at
+                          missing, status, status_updated_at, salary_min, salary_max,
+                          min_experience, flags
                    FROM jobs WHERE collected_at >= ? ORDER BY collected_at DESC""",
                 (since,),
             ).fetchall()
         return [_row_to_dict(r) for r in rows]
+
+    def jobs_with_status(self, *statuses: JobStatus) -> list[dict[str, Any]]:
+        marks = ", ".join("?" for _ in statuses)
+        with self.conn() as c:
+            rows = c.execute(
+                f"SELECT * FROM jobs WHERE status IN ({marks}) ORDER BY status_updated_at DESC",
+                [s.value for s in statuses],
+            ).fetchall()
+        return [_row_to_dict(r) for r in rows]
+
+    # ------------------------------------------------------------ documentos da IA
+    def get_document(self, job_id: int, kind: str) -> dict[str, Any] | None:
+        with self.conn() as c:
+            row = c.execute(
+                "SELECT content, created_at FROM ai_documents WHERE job_id = ? AND kind = ?",
+                (job_id, kind),
+            ).fetchone()
+        if not row:
+            return None
+        return {**json.loads(row["content"]), "created_at": row["created_at"]}
+
+    def save_document(self, job_id: int, kind: str, content: dict[str, Any]) -> dict[str, Any]:
+        created = _now()
+        with self.conn() as c:
+            c.execute(
+                """INSERT INTO ai_documents (job_id, kind, content, created_at)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT (job_id, kind) DO UPDATE SET
+                       content = excluded.content, created_at = excluded.created_at""",
+                (job_id, kind, json.dumps(content, ensure_ascii=False), created),
+            )
+        return {**content, "created_at": created}
+
+    # ------------------------------------------------------------ histórico de coletas
+    def save_run(self, stats: dict[str, Any]) -> None:
+        with self.conn() as c:
+            c.execute(
+                "INSERT INTO collect_runs (ran_at, stats) VALUES (?, ?)",
+                (_now(), json.dumps(stats, ensure_ascii=False, default=str)),
+            )
+
+    def runs_since(self, days: int) -> list[dict[str, Any]]:
+        since = (datetime.now(UTC) - timedelta(days=days)).isoformat(timespec="seconds")
+        with self.conn() as c:
+            rows = c.execute(
+                "SELECT ran_at, stats FROM collect_runs WHERE ran_at >= ? ORDER BY ran_at DESC",
+                (since,),
+            ).fetchall()
+        return [{"ran_at": r["ran_at"], **json.loads(r["stats"])} for r in rows]
+
+    # ------------------------------------------------------------ e-mails processados
+    def email_processed(self, message_id: str) -> bool:
+        with self.conn() as c:
+            row = c.execute(
+                "SELECT 1 FROM processed_emails WHERE message_id = ?", (message_id,)
+            ).fetchone()
+        return row is not None
+
+    def mark_email_processed(self, message_id: str, outcome: str) -> None:
+        with self.conn() as c:
+            c.execute(
+                "INSERT OR IGNORE INTO processed_emails (message_id, processed_at, outcome) "
+                "VALUES (?, ?, ?)",
+                (message_id, _now(), outcome),
+            )
 
     def status_counts(self) -> dict[str, int]:
         with self.conn() as c:

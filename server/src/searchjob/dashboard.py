@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter, defaultdict
 from datetime import UTC, date, datetime, timedelta
+from statistics import median
 from typing import Any
 
 from .db import Database
@@ -194,6 +195,17 @@ def build_dashboard(
     )
     states = Counter(j["state"] for j in jobs if j.get("state"))
 
+    salaries = sorted(
+        (j["salary_min"] + (j.get("salary_max") or j["salary_min"])) / 2
+        for j in jobs
+        if j.get("salary_min")
+    )
+    runs = db.runs_since(days)
+    excluded_reasons: Counter[str] = Counter()
+    for run in runs:
+        excluded_reasons.update(run.get("excluded_reasons") or {})
+    flags = Counter(flag for j in jobs for flag in j.get("flags") or [])
+
     return {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "days": days,
@@ -205,7 +217,13 @@ def build_dashboard(
             "good_matches": sum(1 for s in scores if s >= 7),
             "applications": sent,
             "response_rate": _pct(answered, sent),
+            "excluded": sum(run.get("excluded", 0) for run in runs),
+            "salary_median": median(salaries) if salaries else None,
+            "salary_count": len(salaries),
+            "last_run": runs[0]["ran_at"] if runs else None,
         },
+        "excluded_reasons": _top(excluded_reasons, 8, sum(excluded_reasons.values())),
+        "flags": _top(flags, 6, total),
         **_skills_section(jobs, profile),
         "ai_missing": _ai_missing(analyzed, len(analyzed)),
         **_repetition(jobs, total),
