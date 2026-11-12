@@ -1,0 +1,27 @@
+services:
+  searchjob:
+    build: .
+    image: searchjob:latest
+    container_name: searchjob
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+
+  # IA local na CPU do servidor (opcional). Ative com:
+  #   docker compose --profile ollama up -d
+  # e use SJ_LLM_BASE_URL=http://ollama:11434/v1 no .env
+  ollama:
+    image: ollama/ollama:latest
+    container_name: searchjob-ollama
+    restart: unless-stopped
+    profiles: ["ollama"]
+    volumes:
+      - ollama:/root/.ollama
+    expose:
+      - "11434"
+
+volumes:
+  ollama:
